@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.venv/
+.env
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Build artifacts
+*.log
+*.tmp
+*.cache
+
+# OS
+.DS_Store
+
+# Results
+/tmp/anon_docs_results/
+
+# PDFs and samples
+*.pdf
+
+# IDE
+.vscode/
+.idea/

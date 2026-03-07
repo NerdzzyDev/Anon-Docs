@@ -1,0 +1,113 @@
+export type AnonymizeOptions = {
+  fio: boolean;
+  passport: boolean;
+  birthdate: boolean;
+  snils_inn: boolean;
+  phone: boolean;
+  banking: boolean;
+};
+
+export type FileResult = {
+  result_path: string;
+  download_url: string;
+  output_filename: string;
+  preview_html: string;
+  preview_text: string;
+  warnings: string[];
+};
+
+export type BatchJobCreate = {
+  job_id: string;
+  status: string;
+  total: number;
+};
+
+export type BatchItem = {
+  filename: string;
+  result: FileResult | null;
+  error: string | null;
+};
+
+export type BatchStatus = {
+  job_id: string;
+  status: string;
+  total: number;
+  processed: number;
+  progress: number;
+  items: BatchItem[];
+};
+
+export type TextResponse = {
+  anonymized_text: string;
+  highlighted_html: string;
+  result_path: string;
+  warnings?: string[];
+};
+
+async function handleJson(res: Response) {
+  const contentType = res.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) return res.json();
+  const text = await res.text();
+  return { detail: text };
+}
+
+export async function anonymizeText(payload: {
+  text: string;
+  options: AnonymizeOptions;
+}): Promise<TextResponse> {
+  const res = await fetch("/api/anonymize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await handleJson(res);
+  if (!res.ok) {
+    const msg = data?.detail || `Ошибка сервера (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+  }
+  return data as TextResponse;
+}
+
+export async function anonymizeFile(file: File, options: AnonymizeOptions): Promise<FileResult> {
+  const form = new FormData();
+  form.append("file", file);
+  form.append("options", JSON.stringify(options));
+
+  const res = await fetch("/api/anonymize-file", {
+    method: "POST",
+    body: form,
+  });
+  const data = await handleJson(res);
+  if (!res.ok) {
+    const msg = data?.detail || `Ошибка сервера (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+  }
+  return data as FileResult;
+}
+
+export async function startBatch(files: File[], options: AnonymizeOptions): Promise<BatchJobCreate> {
+  const form = new FormData();
+  files.forEach((file) => form.append("files", file));
+  form.append("options", JSON.stringify(options));
+
+  const res = await fetch("/api/anonymize-files-async", {
+    method: "POST",
+    body: form,
+  });
+  const data = await handleJson(res);
+  if (!res.ok) {
+    const msg = data?.detail || `Ошибка сервера (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+  }
+  return data as BatchJobCreate;
+}
+
+export async function getBatchStatus(jobId: string): Promise<BatchStatus> {
+  const res = await fetch(`/api/batch/${jobId}`);
+  const data = await handleJson(res);
+  if (!res.ok) {
+    const msg = data?.detail || `Ошибка сервера (${res.status})`;
+    throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+  }
+  return data as BatchStatus;
+}
