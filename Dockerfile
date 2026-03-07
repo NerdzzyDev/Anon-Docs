@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libstdc++6 \
     libgomp1 \
+    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt ./
@@ -23,7 +24,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
 COPY backend/main.py ./main.py
-COPY backend/static ./static
 COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
 EXPOSE 8000
