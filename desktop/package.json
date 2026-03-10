@@ -11,12 +11,13 @@
     "build:mac": "electron-builder --mac dmg",
     "build": "npm run build:frontend && electron-builder --linux AppImage"
   },
-  "dependencies": {
-    "electron": "^30.0.1"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "electron": "^30.0.1",
     "electron-builder": "^24.13.3"
   },
+  "description": "Desktop client for document anonymization service.",
+  "author": "NerdzzyDev",
   "build": {
     "appId": "org.anon.docs",
     "productName": "Document Anonymization",
