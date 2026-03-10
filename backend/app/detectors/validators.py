@@ -27,12 +27,17 @@ class ValidatorDetector:
             ValidatorRule(re.compile(r"\bдата\s+рождения\s*[:\-]?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b", re.IGNORECASE), "[ДАТА РОЖДЕНИЯ]", 1),
             ValidatorRule(re.compile(r"\bдата\s+рождения\s*[:\-]?\s*(\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+\d{4})\b", re.IGNORECASE), "[ДАТА РОЖДЕНИЯ]", 1),
             ValidatorRule(re.compile(r"\b(?:родился|родилась)\s*[:\-]?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b", re.IGNORECASE), "[ДАТА РОЖДЕНИЯ]", 1),
+            ValidatorRule(re.compile(r"\b(?:родился|родилась)\s*[:\-]?\s*(\d{1,2}\s+(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)\s+\d{4})\b", re.IGNORECASE), "[ДАТА РОЖДЕНИЯ]", 1),
+            ValidatorRule(re.compile(r"\bд/р\s*[:\-]?\s*(\d{1,2}[./-]\d{1,2}[./-]\d{4})\b", re.IGNORECASE), "[ДАТА РОЖДЕНИЯ]", 1),
+            ValidatorRule(re.compile(r"\bдата\s+рождения\s*[:\-]?\s*(\d{4}-\d{2}-\d{2})\b", re.IGNORECASE), "[ДАТА РОЖДЕНИЯ]", 1),
             # СНИЛС / ИНН
             ValidatorRule(re.compile(r"\bснилс\s*[:№]?\s*(\d{3}-\d{3}-\d{3}\s?\d{2})\b", re.IGNORECASE), "[СНИЛС/ИНН]", 1),
             ValidatorRule(re.compile(r"\b\d{3}-\d{3}-\d{3}\s?\d{2}\b"), "[СНИЛС/ИНН]", 0),
             ValidatorRule(re.compile(r"\bинн\s*[:№]?\s*(\d{10,12})\b", re.IGNORECASE), "[СНИЛС/ИНН]", 1),
+            ValidatorRule(re.compile(r"\bинн\s*[:№]?\s*(\d{2}[- ]?\d{2}[- ]?\d{2}[- ]?\d{2}[- ]?\d{2}[- ]?\d{2})\b", re.IGNORECASE), "[СНИЛС/ИНН]", 1),
+            ValidatorRule(re.compile(r"\bснилс\s*[:№]?\s*(\d{11})\b", re.IGNORECASE), "[СНИЛС/ИНН]", 1),
             # Телефон
-            ValidatorRule(re.compile(r"\b(?:\+7|7|8)\s?\(?\d{3}\)?\s?\d{3}[-\s]?\d{2}[-\s]?\d{2}\b"), "[ТЕЛЕФОН]", 0),
+            ValidatorRule(re.compile(r"(?<!\d)(?:\+7|7|8)\s?\(?\d{3}\)?\s?\d{3}[-\s]?\d{2}[-\s]?\d{2}(?!\d)"), "[ТЕЛЕФОН]", 0),
             # Счета/реквизиты
             ValidatorRule(re.compile(r"\b(?:р/с|расч[её]тный\s+сч[её]т)\s*[:№]?\s*(\d{20})\b", re.IGNORECASE), "[СЧЕТ/РЕКВИЗИТЫ]", 1),
             ValidatorRule(re.compile(r"\b(?:к/с|корр(?:еспондентский)?\s+сч[её]т)\s*[:№]?\s*(\d{20})\b", re.IGNORECASE), "[СЧЕТ/РЕКВИЗИТЫ]", 1),
