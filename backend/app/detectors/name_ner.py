@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-from typing import List
+from typing import Iterable, List
 
 from natasha import Doc, MorphVocab, NewsEmbedding, NewsNERTagger, Segmenter
 
@@ -35,4 +36,54 @@ class NameDetector:
                         text=text[span.start:span.stop],
                     )
                 )
-        return entities
+
+        entities.extend(self._regex_spans(text))
+        return self._dedupe(entities)
+
+    def _regex_spans(self, text: str) -> List[DetectedSpan]:
+        patterns: list[re.Pattern[str]] = [
+            # Иванов Иван Иванович
+            re.compile(r"\b[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\b"),
+            # Иванов Иван
+            re.compile(r"\b[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\b"),
+            # Иван Иванович (имя + отчество с типичным окончанием)
+            re.compile(r"\b[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}(?:вич|вна)\b"),
+            # Иванов И.В. / Иванов И. В.
+            re.compile(r"\b[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.\b"),
+            # Иванов И. / Иванов И
+            re.compile(r"\b[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ]\.?\b"),
+            # И.В. Иванов / И. В. Иванов
+            re.compile(r"\b[А-ЯЁ]\.\s*[А-ЯЁ]\.\s*[А-ЯЁ][а-яё-]{2,}\b"),
+            # И. Иванов
+            re.compile(r"\b[А-ЯЁ]\.\s*[А-ЯЁ][а-яё-]{2,}\b"),
+            # ИП \"Иванов И.В.\" или ИП Иванов И.В.
+            re.compile(r"\bИП\s+\"?[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.?\"?\b"),
+            # ИП Иванов Иван Иванович
+            re.compile(r"\bИП\s+\"?[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\"?\b"),
+            # г-н / гражданин / гражданка
+            re.compile(r"\b(г-н|г-жа|гражданин|гражданка)\s+[А-ЯЁ][а-яё-]{2,}(?:\s+[А-ЯЁ][а-яё-]{2,}){0,2}\b", re.IGNORECASE),
+        ]
+
+        spans: List[DetectedSpan] = []
+        for pattern in patterns:
+            for match in pattern.finditer(text):
+                spans.append(
+                    DetectedSpan(
+                        start=match.start(),
+                        end=match.end(),
+                        label="[ФИО]",
+                        text=text[match.start() : match.end()],
+                    )
+                )
+        return spans
+
+    def _dedupe(self, spans: Iterable[DetectedSpan]) -> List[DetectedSpan]:
+        seen: set[tuple[int, int]] = set()
+        unique: List[DetectedSpan] = []
+        for span in spans:
+            key = (span.start, span.end)
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(span)
+        return unique
