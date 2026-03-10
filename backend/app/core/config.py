@@ -38,6 +38,8 @@ class Settings:
     pdf_llm_assist: bool = os.getenv("PDF_LLM_ASSIST", "0") == "1"
     pdf_llm_max_chars: int = int(os.getenv("PDF_LLM_MAX_CHARS", "12000"))
 
+    desktop_unlimited_token: str = os.getenv("DESKTOP_UNLIMITED_TOKEN", "").strip()
+
 
 settings = Settings()
 

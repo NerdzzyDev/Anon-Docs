@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Dict
 
+from app.core.config import settings
+
 
 @dataclass
 class DailyCount:
@@ -40,3 +42,11 @@ class SessionLimiter:
 
 
 session_limiter = SessionLimiter(max_per_day=10)
+
+
+def is_unlimited(request) -> bool:
+    token = settings.desktop_unlimited_token
+    if not token:
+        return False
+    header = request.headers.get("X-Desktop-Token")
+    return bool(header and header == token)

@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 
 from app.core.config import RESULTS_DIR, UPLOADS_DIR, settings
-from uuid import uuid4
-
 from app.schemas.files import BatchJobCreateResponse, BatchJobStatusResponse, FileAnonymizeResponse, FileBatchResponse
 from app.schemas.options import AnonymizeOptions
 from app.services.anonymizer import anonymize_text_value, highlight_placeholders
 from app.services.batch import BatchItem, BatchJob, batch_store
-from app.services.limits import session_limiter
+from app.services.limits import is_unlimited, session_limiter
 from app.services.office import process_docx_file, process_xlsx_file
 from app.services.pdf import safe_redact_pdf
 from app.utils.io import build_output_name, save_uploaded_file
@@ -106,8 +105,9 @@ def anonymize_file(request: Request, file: UploadFile = File(...), options: str 
         raise HTTPException(status_code=400, detail="Файл не выбран")
 
     session_id = getattr(request.state, "session_id", "anon")
-    if not session_limiter.check_and_increment(session_id, 1):
-        raise HTTPException(status_code=429, detail="Дневной лимит 10 документов исчерпан")
+    if not is_unlimited(request):
+        if not session_limiter.check_and_increment(session_id, 1):
+            raise HTTPException(status_code=429, detail="Дневной лимит 10 документов исчерпан")
 
     parsed_options = _parse_options_json(options)
     src_path = save_uploaded_file(file, UPLOADS_DIR, settings.max_upload_size_mb)
@@ -127,8 +127,9 @@ def anonymize_files(request: Request, files: list[UploadFile] = File(...), optio
         raise HTTPException(status_code=400, detail="За один запрос можно обработать не более 5 файлов")
 
     session_id = getattr(request.state, "session_id", "anon")
-    if not session_limiter.check_and_increment(session_id, len(files)):
-        raise HTTPException(status_code=429, detail="Дневной лимит 10 документов исчерпан")
+    if not is_unlimited(request):
+        if not session_limiter.check_and_increment(session_id, len(files)):
+            raise HTTPException(status_code=429, detail="Дневной лимит 10 документов исчерпан")
 
     parsed_options = _parse_options_json(options)
     results: list[FileAnonymizeResponse] = []
@@ -157,8 +158,9 @@ def anonymize_files_async(
         raise HTTPException(status_code=400, detail="За один запрос можно обработать не более 5 файлов")
 
     session_id = getattr(request.state, "session_id", "anon")
-    if not session_limiter.check_and_increment(session_id, len(files)):
-        raise HTTPException(status_code=429, detail="Дневной лимит 10 документов исчерпан")
+    if not is_unlimited(request):
+        if not session_limiter.check_and_increment(session_id, len(files)):
+            raise HTTPException(status_code=429, detail="Дневной лимит 10 документов исчерпан")
 
     parsed_options = _parse_options_json(options)
     saved_files: list[tuple[Path, str]] = []

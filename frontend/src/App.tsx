@@ -96,7 +96,7 @@ export default function App() {
   const [mode, setMode] = useState<"file" | "text">("file");
   const [options, setOptions] = useState<AnonymizeOptions>(defaultOptions);
   const [inputText, setInputText] = useState("");
-  const [outputText, setOutputText] = useState("Здесь появится обработанный текст.");
+  const [outputText, setOutputText] = useState("");
   const [highlightHtml, setHighlightHtml] = useState("");
   const [resultPath, setResultPath] = useState("");
   const [busy, setBusy] = useState(false);

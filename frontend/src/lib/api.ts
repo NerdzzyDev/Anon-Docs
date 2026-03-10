@@ -44,6 +44,14 @@ export type TextResponse = {
   warnings?: string[];
 };
 
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || "";
+const DESKTOP_TOKEN = (import.meta as any).env?.VITE_DESKTOP_TOKEN || "";
+
+function apiUrl(path: string) {
+  if (!API_BASE) return path;
+  return `${API_BASE.replace(/\/$/, "")}${path}`;
+}
+
 async function handleJson(res: Response) {
   const contentType = res.headers.get("content-type") || "";
   if (contentType.includes("application/json")) return res.json();
@@ -51,13 +59,19 @@ async function handleJson(res: Response) {
   return { detail: text };
 }
 
+function buildHeaders(extra: Record<string, string> = {}) {
+  const headers: Record<string, string> = { ...extra };
+  if (DESKTOP_TOKEN) headers["X-Desktop-Token"] = DESKTOP_TOKEN;
+  return headers;
+}
+
 export async function anonymizeText(payload: {
   text: string;
   options: AnonymizeOptions;
 }): Promise<TextResponse> {
-  const res = await fetch("/api/anonymize", {
+  const res = await fetch(apiUrl("/api/anonymize"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: buildHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
   const data = await handleJson(res);
@@ -73,9 +87,10 @@ export async function anonymizeFile(file: File, options: AnonymizeOptions): Prom
   form.append("file", file);
   form.append("options", JSON.stringify(options));
 
-  const res = await fetch("/api/anonymize-file", {
+  const res = await fetch(apiUrl("/api/anonymize-file"), {
     method: "POST",
     body: form,
+    headers: buildHeaders(),
   });
   const data = await handleJson(res);
   if (!res.ok) {
@@ -90,9 +105,10 @@ export async function startBatch(files: File[], options: AnonymizeOptions): Prom
   files.forEach((file) => form.append("files", file));
   form.append("options", JSON.stringify(options));
 
-  const res = await fetch("/api/anonymize-files-async", {
+  const res = await fetch(apiUrl("/api/anonymize-files-async"), {
     method: "POST",
     body: form,
+    headers: buildHeaders(),
   });
   const data = await handleJson(res);
   if (!res.ok) {
@@ -103,7 +119,9 @@ export async function startBatch(files: File[], options: AnonymizeOptions): Prom
 }
 
 export async function getBatchStatus(jobId: string): Promise<BatchStatus> {
-  const res = await fetch(`/api/batch/${jobId}`);
+  const res = await fetch(apiUrl(`/api/batch/${jobId}`), {
+    headers: buildHeaders(),
+  });
   const data = await handleJson(res);
   if (!res.ok) {
     const msg = data?.detail || `Ошибка сервера (${res.status})`;

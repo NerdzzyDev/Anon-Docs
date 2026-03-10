@@ -1,0 +1,44 @@
+{
+  "name": "anon-docs-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "main": "main.cjs",
+  "scripts": {
+    "dev": "ELECTRON_DEV_SERVER=http://localhost:5173 electron .",
+    "build:frontend": "npm --prefix ../frontend run build",
+    "build:linux": "electron-builder --linux AppImage",
+    "build:win": "electron-builder --win nsis",
+    "build:mac": "electron-builder --mac dmg",
+    "build": "npm run build:frontend && electron-builder --linux AppImage"
+  },
+  "dependencies": {
+    "electron": "^30.0.1"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "org.anon.docs",
+    "productName": "Document Anonymization",
+    "files": [
+      "main.cjs",
+      "preload.cjs"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/dist",
+        "to": "frontend_dist"
+      }
+    ],
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility"
+    },
+    "win": {
+      "target": ["nsis"]
+    },
+    "mac": {
+      "target": ["dmg"]
+    }
+  }
+}
