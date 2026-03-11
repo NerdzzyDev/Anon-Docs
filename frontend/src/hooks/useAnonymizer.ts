@@ -199,6 +199,7 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
           outputFilename: result.output_filename,
           warnings: result.warnings,
         });
+        setBusy(false);
         return;
       }
 
