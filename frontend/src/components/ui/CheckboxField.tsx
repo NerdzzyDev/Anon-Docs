@@ -6,10 +6,15 @@ type CheckboxFieldProps = {
 
 export function CheckboxField({ checked, label, onChange }: CheckboxFieldProps) {
   return (
-    <label className="checkbox-field">
-      <input type="checkbox" checked={checked} onChange={onChange} />
-      <span className="checkbox-field__box" aria-hidden="true" />
+    <button
+      type="button"
+      className="checkbox-field"
+      role="checkbox"
+      aria-checked={checked}
+      onClick={onChange}
+    >
+      <span className={`checkbox-field__box${checked ? " is-checked" : ""}`} aria-hidden="true" />
       <span>{label}</span>
-    </label>
+    </button>
   );
 }

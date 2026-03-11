@@ -102,6 +102,8 @@ button {
   color: #1d1d1d;
   font-size: 16px;
   text-align: left;
+  min-width: 0;
+  width: 100%;
 }
 
 .home-sidebar__nav-item.is-active,
@@ -130,6 +132,18 @@ button {
 
 .home-sidebar__recent-item + .home-sidebar__recent-item {
   margin-top: 16px;
+}
+
+.home-sidebar__recent-text,
+.home-library__item-name,
+.home-library__item-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-sidebar__recent-text {
+  white-space: nowrap;
 }
 
 .home-sidebar__icon {
@@ -343,17 +357,20 @@ button {
   align-items: center;
   gap: 14px;
   text-align: left;
+  min-width: 0;
 }
 
 .home-library__item-name {
   font-size: 16px;
   font-weight: 600;
   color: #1e1e1e;
+  white-space: nowrap;
 }
 
 .home-library__item-meta {
   font-size: 13px;
   color: #6a6a6a;
+  white-space: nowrap;
 }
 
 .home-dropzone-layout__content {
@@ -633,12 +650,9 @@ button {
   font-size: 14px;
   white-space: nowrap;
   cursor: pointer;
-}
-
-.checkbox-field input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
 .checkbox-field__box {
@@ -651,12 +665,12 @@ button {
   flex: 0 0 auto;
 }
 
-.checkbox-field input:checked + .checkbox-field__box {
+.checkbox-field__box.is-checked {
   background: #000;
   border-color: #000;
 }
 
-.checkbox-field input:checked + .checkbox-field__box::after {
+.checkbox-field__box.is-checked::after {
   content: "";
   position: absolute;
   left: 3px;

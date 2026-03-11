@@ -57,7 +57,7 @@ export function HomeScreen({ onOpenUpload, history }: HomeScreenProps) {
             recentItems.map((item) => (
               <button key={item.id} type="button" className="home-sidebar__recent-item" onClick={() => onOpenUpload(item.mode)}>
                 <span className="home-sidebar__icon home-sidebar__icon--file" />
-                <span>{item.title}</span>
+                <span className="home-sidebar__recent-text">{item.title}</span>
               </button>
             ))
           ) : (
