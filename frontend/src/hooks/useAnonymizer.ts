@@ -31,6 +31,7 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [isHighlightOpen, setIsHighlightOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [fileInputKey, setFileInputKey] = useState(0);
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -79,6 +80,23 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
     setProgress(0);
     setWarning("");
     setStatus("Режим: обработка текста");
+  };
+
+  const resetFileFlow = () => {
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+    }
+    setSelectedFiles([]);
+    setResultItems([]);
+    setActiveItemId(null);
+    setOutputText("");
+    setHighlightHtml("");
+    setResultPath("");
+    setWarning("");
+    setBusy(false);
+    setProgress(0);
+    setStatus("Режим: обработка документа");
+    setFileInputKey((prev) => prev + 1);
   };
 
   const onFilesSelected = (files: FileList | null) => {
@@ -297,11 +315,13 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
     warning,
     characterCount,
     currentFileName,
+    fileInputKey,
     selectedFiles,
     onFilesSelected,
     runText,
     runFile,
     clearText,
+    resetFileFlow,
     copyOutput,
     downloadActive,
     activeItem,

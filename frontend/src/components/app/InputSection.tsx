@@ -7,12 +7,14 @@ type InputSectionProps = {
   onInputTextChange: (value: string) => void;
   characterCount: number;
   currentFileName: string;
+  fileInputKey?: number;
   busy: boolean;
   warning: string;
   onSelectFiles: (files: FileList | null) => void;
   onSubmit: () => Promise<void>;
   onClear: () => void;
-  onDownload: () => void;
+  onResetFileFlow: () => void;
+  hasFileResult?: boolean;
 };
 
 export function InputSection({
@@ -21,12 +23,14 @@ export function InputSection({
   onInputTextChange,
   characterCount,
   currentFileName,
+  fileInputKey = 0,
   busy,
   warning,
   onSelectFiles,
   onSubmit,
   onClear,
-  onDownload,
+  onResetFileFlow,
+  hasFileResult = false,
 }: InputSectionProps) {
   return (
     <AppCard
@@ -55,6 +59,7 @@ export function InputSection({
         <>
           <label className="upload-dropzone">
             <input
+              key={fileInputKey}
               type="file"
               multiple
               accept=".txt,.csv,.md,.json,.log,.docx,.xlsx,.xlsm,.pdf,.doc"
@@ -68,8 +73,8 @@ export function InputSection({
             <button type="button" className="button button--primary" onClick={() => void onSubmit()} disabled={busy}>
               {busy ? "Обработка..." : "Запустить обработку файла"}
             </button>
-            <button type="button" className="button button--ghost" onClick={onDownload} disabled={busy}>
-              Скачать файл
+            <button type="button" className="button button--ghost" onClick={onResetFileFlow} disabled={busy}>
+              {hasFileResult ? "Новый документ" : "Сбросить"}
             </button>
           </div>
         </>

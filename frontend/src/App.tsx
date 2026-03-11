@@ -29,10 +29,12 @@ export default function App() {
     warning,
     characterCount,
     currentFileName,
+    fileInputKey,
     onFilesSelected,
     runText,
     runFile,
     clearText,
+    resetFileFlow,
     copyOutput,
     downloadActive,
     activeItem,
@@ -77,12 +79,14 @@ export default function App() {
             onInputTextChange={setInputText}
             characterCount={characterCount}
             currentFileName={currentFileName}
+            fileInputKey={fileInputKey}
             busy={busy}
             warning={warning}
             onSelectFiles={onFilesSelected}
             onSubmit={() => handleAction(mode === "text" ? runText : runFile)}
             onClear={clearText}
-            onDownload={downloadActive}
+            onResetFileFlow={resetFileFlow}
+            hasFileResult={Boolean(activeItem?.result?.download_url || resultItems.length)}
           />
           <ResultSection
             mode={mode}
