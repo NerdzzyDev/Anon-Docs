@@ -992,6 +992,10 @@ mark.mask {
 }
 
 @media (max-width: 760px) {
+  .app-layout {
+    transform: none;
+  }
+
   .home-topbar {
     height: auto;
     padding: 18px 14px;
@@ -1001,14 +1005,31 @@ mark.mask {
 
   .home-topbar__tabs {
     flex-wrap: wrap;
+    gap: 8px;
   }
 
   .processing-toolbar__tabs {
     flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .processing-toolbar__tab {
+    flex: 1 1 auto;
+    text-align: center;
   }
 
   .home-dropzone {
     width: 100%;
+    min-height: 200px;
+  }
+
+  .home-dropzone-layout {
+    padding: 28px 14px;
+    min-height: auto;
+  }
+
+  .home-dropzone-layout__content {
+    transform: none;
   }
 
   .home-library {
@@ -1052,11 +1073,30 @@ mark.mask {
   }
 
   .options-grid {
-    grid-template-columns: repeat(2, max-content);
-    column-gap: 24px;
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+
+  .checkbox-field {
+    white-space: normal;
   }
 
   .panel-card__actions {
     flex-wrap: wrap;
+  }
+
+  .panel-card,
+  .panel-card--text,
+  .panel-card--file,
+  .app-columns > .panel-card:last-child {
+    min-height: auto;
+  }
+
+  .app-textarea {
+    min-height: 220px;
+  }
+
+  .segmented-control {
+    width: 100%;
   }
 }
