@@ -21,6 +21,7 @@ export default function App() {
     inputText,
     setInputText,
     outputText,
+    highlightHtml,
     resultPath,
     progress,
     status,
@@ -86,6 +87,7 @@ export default function App() {
           <ResultSection
             mode={mode}
             outputText={outputText}
+            highlightHtml={highlightHtml}
             busy={busy}
             onCopy={() => handleAction(copyOutput)}
             onDownload={downloadActive}

@@ -703,6 +703,19 @@ button {
   min-height: 198px;
 }
 
+.app-textarea--html {
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.app-textarea--html > *:first-child {
+  margin-top: 0;
+}
+
+.app-textarea--html > *:last-child {
+  margin-bottom: 0;
+}
+
 .panel-card__actions {
   display: flex;
   align-items: center;

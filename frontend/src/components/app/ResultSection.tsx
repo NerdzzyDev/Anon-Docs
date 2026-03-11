@@ -6,6 +6,7 @@ import type { AppMode } from "../../hooks/useAnonymizer";
 type ResultSectionProps = {
   mode: AppMode;
   outputText: string;
+  highlightHtml: string;
   busy: boolean;
   onCopy: () => Promise<void>;
   onDownload: () => void;
@@ -19,6 +20,7 @@ type ResultSectionProps = {
 export function ResultSection({
   mode,
   outputText,
+  highlightHtml,
   busy,
   onCopy,
   onDownload,
@@ -43,12 +45,19 @@ export function ResultSection({
       }
     >
       <div className="result-output" ref={sectionRef}>
-        <textarea
-          className="app-textarea app-textarea--output"
-          readOnly
-          value={outputText}
-          placeholder="Здесь появится обработанный текст с подсветкой замен"
-        />
+        {highlightHtml ? (
+          <div
+            className="app-textarea app-textarea--output app-textarea--html"
+            dangerouslySetInnerHTML={{ __html: highlightHtml }}
+          />
+        ) : (
+          <textarea
+            className="app-textarea app-textarea--output"
+            readOnly
+            value={outputText}
+            placeholder="Здесь появится обработанный текст с подсветкой замен"
+          />
+        )}
       </div>
       {items.length > 1 ? (
         <div className="result-list">
