@@ -6,17 +6,16 @@ import { CheckboxField } from "../ui/CheckboxField";
 type OptionsSectionProps = {
   options: AnonymizeOptions;
   onToggle: (key: keyof AnonymizeOptions) => void;
-  busy?: boolean;
 };
 
-export function OptionsSection({ options, onToggle, busy = false }: OptionsSectionProps) {
+export function OptionsSection({ options, onToggle }: OptionsSectionProps) {
   return (
     <AppCard title="Настройки анонимизации">
       <div className="options-grid">
         {optionLabels.map((option) => (
           <CheckboxField
             key={option.key}
-            checked={busy ? false : options[option.key]}
+            checked={options[option.key]}
             label={option.label}
             onChange={() => onToggle(option.key)}
           />

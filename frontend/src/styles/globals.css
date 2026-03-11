@@ -650,9 +650,12 @@ button {
   font-size: 14px;
   white-space: nowrap;
   cursor: pointer;
-  border: 0;
-  background: transparent;
-  padding: 0;
+}
+
+.checkbox-field__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .checkbox-field__box {
@@ -665,12 +668,12 @@ button {
   flex: 0 0 auto;
 }
 
-.checkbox-field__box.is-checked {
+.checkbox-field__input:checked + .checkbox-field__box {
   background: #000;
   border-color: #000;
 }
 
-.checkbox-field__box.is-checked::after {
+.checkbox-field__input:checked + .checkbox-field__box::after {
   content: "";
   position: absolute;
   left: 3px;

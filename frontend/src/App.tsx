@@ -68,7 +68,7 @@ export default function App() {
           onResultsOpen={() => resultSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
         />
         <StatusSection status={status} progress={progress} />
-        <OptionsSection options={options} onToggle={updateOption} busy={busy} />
+        <OptionsSection options={options} onToggle={updateOption} />
 
         <div className="app-columns">
           <InputSection
@@ -95,7 +95,8 @@ export default function App() {
             activeItemId={activeItem?.filename}
             onSelectItem={setActiveItemId}
             sectionRef={resultSectionRef}
-            downloadName={activeItem?.result?.output_filename || currentFileName}
+            downloadName={activeItem?.result?.output_filename}
+            hasDownload={Boolean(activeItem?.result?.download_url)}
           />
         </div>
 
