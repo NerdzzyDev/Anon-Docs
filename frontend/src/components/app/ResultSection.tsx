@@ -15,6 +15,7 @@ type ResultSectionProps = {
   onSelectItem: (filename: string) => void;
   sectionRef?: RefObject<HTMLDivElement | null>;
   downloadName?: string;
+  hasDownload?: boolean;
 };
 
 export function ResultSection({
@@ -29,9 +30,10 @@ export function ResultSection({
   onSelectItem,
   sectionRef,
   downloadName,
+  hasDownload = false,
 }: ResultSectionProps) {
   const title = mode === "text" ? "Обезличенный текст" : "Результат";
-  const canDownload = mode === "file" && Boolean(downloadName);
+  const canDownload = mode === "file" && hasDownload && Boolean(downloadName);
 
   return (
     <AppCard
