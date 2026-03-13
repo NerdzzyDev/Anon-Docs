@@ -40,6 +40,7 @@ export default function App() {
     activeItem,
     resultItems,
     setActiveItemId,
+    resultItemLabels,
   } = useAnonymizer({ onHistoryEntry: addHistoryEntry });
 
   const handleAction = async (action: () => Promise<void>) => {
@@ -96,6 +97,7 @@ export default function App() {
             onCopy={() => handleAction(copyOutput)}
             onDownload={downloadActive}
             items={resultItems}
+            itemLabels={resultItemLabels}
             activeItemId={activeItem?.filename}
             onSelectItem={setActiveItemId}
             sectionRef={resultSectionRef}

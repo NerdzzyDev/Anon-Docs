@@ -40,6 +40,10 @@ class Settings:
 
     desktop_unlimited_token: str = os.getenv("DESKTOP_UNLIMITED_TOKEN", "").strip()
 
+    cors_allow_origins: str = os.getenv("CORS_ALLOW_ORIGINS", "").strip()
+    cors_allow_methods: str = os.getenv("CORS_ALLOW_METHODS", "GET,POST,PUT,DELETE,OPTIONS").strip()
+    cors_allow_headers: str = os.getenv("CORS_ALLOW_HEADERS", "*").strip()
+
 
 settings = Settings()
 

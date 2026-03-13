@@ -3,6 +3,7 @@ import {
   anonymizeFile,
   anonymizeText,
   getBatchStatus,
+  resolveApiUrl,
   startBatch,
   type AnonymizeOptions,
   type BatchItem,
@@ -59,10 +60,16 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
     if (!selectedFiles.length) return "Файл не выбран";
     if (selectedFiles.length === 1) {
       const file = selectedFiles[0];
-      return `${file.name} • ${formatSize(file.size)}`;
+      return `${getFileDisplayPath(file)} • ${formatSize(file.size)}`;
     }
     return `Выбрано файлов: ${selectedFiles.length}`;
   }, [selectedFiles]);
+
+  const resultItemLabels = useMemo(() => {
+    if (!resultItems.length) return [];
+    const selectedLabels = selectedFiles.map((file) => getFileDisplayPath(file));
+    return resultItems.map((item, index) => selectedLabels[index] || item.filename);
+  }, [resultItems, selectedFiles]);
 
   const characterCount = inputText.length;
 
@@ -109,13 +116,14 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
     setResultPath("");
     setWarning("");
     nextFiles.forEach((file) => {
+      const displayPath = getFileDisplayPath(file);
       onHistoryEntry?.({
         id: `upload:${file.name}:${file.size}`,
-        title: file.name,
+        title: displayPath,
         mode: "file",
         status: "uploaded",
         createdAt: new Date().toISOString(),
-        sourceName: file.name,
+        sourceName: displayPath,
       });
     });
   };
@@ -178,6 +186,7 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
       if (selectedFiles.length === 1) {
         const result = await anonymizeFile(selectedFiles[0], options);
         const item = { filename: selectedFiles[0].name, result, error: null };
+        const sourcePath = getFileDisplayPath(selectedFiles[0]);
         setResultItems([item]);
         setActiveItemId(item.filename);
         setOutputText(result.preview_text || "");
@@ -188,11 +197,11 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
         if (result.warnings?.length) setWarning(result.warnings.join(" "));
         onHistoryEntry?.({
           id: `processed:${selectedFiles[0].name}:${result.output_filename}`,
-          title: result.output_filename || selectedFiles[0].name,
+          title: sourcePath,
           mode: "file",
           status: "processed",
           createdAt: new Date().toISOString(),
-          sourceName: selectedFiles[0].name,
+          sourceName: sourcePath,
           resultPath: result.result_path,
           previewText: result.preview_text,
           downloadUrl: result.download_url,
@@ -230,15 +239,16 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
 
           const hasErrors = items.some((item) => item.error);
           const warnings = items.flatMap((item) => item.result?.warnings || []);
-          items.forEach((item) => {
+          items.forEach((item, index) => {
             if (!item.result) return;
+            const sourcePath = getFileDisplayPath(selectedFiles[index] || null);
             onHistoryEntry?.({
               id: `processed:${item.filename}:${item.result.output_filename}`,
-              title: item.result.output_filename || item.filename,
+              title: sourcePath || item.filename,
               mode: "file",
               status: "processed",
               createdAt: new Date().toISOString(),
-              sourceName: item.filename,
+              sourceName: sourcePath || item.filename,
               resultPath: item.result.result_path,
               previewText: item.result.preview_text,
               downloadUrl: item.result.download_url,
@@ -272,7 +282,7 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
     const result = activeItem?.result;
     if (!result?.download_url) return;
     const link = document.createElement("a");
-    link.href = result.download_url;
+    link.href = resolveApiUrl(result.download_url);
     link.download = result.output_filename || activeItem?.filename || "result";
     document.body.appendChild(link);
     link.click();
@@ -331,6 +341,7 @@ export function useAnonymizer({ onHistoryEntry }: UseAnonymizerOptions = {}) {
     highlightHtml,
     isHighlightOpen,
     setIsHighlightOpen,
+    resultItemLabels,
   };
 }
 
@@ -338,4 +349,10 @@ function formatSize(size: number) {
   if (size < 1024) return `${size} Б`;
   if (size < 1024 * 1024) return `${Math.round(size / 102.4) / 10} КБ`;
   return `${Math.round(size / 1024 / 102.4) / 10} МБ`;
+}
+
+function getFileDisplayPath(file: File | null): string {
+  if (!file) return "";
+  const withPath = file as File & { path?: string };
+  return withPath.path || file.name;
 }

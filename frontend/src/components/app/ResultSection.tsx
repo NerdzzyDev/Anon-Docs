@@ -11,6 +11,7 @@ type ResultSectionProps = {
   onCopy: () => Promise<void>;
   onDownload: () => void;
   items: BatchItem[];
+  itemLabels?: string[];
   activeItemId?: string;
   onSelectItem: (filename: string) => void;
   sectionRef?: RefObject<HTMLDivElement | null>;
@@ -26,6 +27,7 @@ export function ResultSection({
   onCopy,
   onDownload,
   items,
+  itemLabels = [],
   activeItemId,
   onSelectItem,
   sectionRef,
@@ -63,14 +65,14 @@ export function ResultSection({
       </div>
       {items.length > 1 ? (
         <div className="result-list">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <button
               key={item.filename}
               type="button"
               className={`result-list__item${activeItemId === item.filename ? " is-active" : ""}`}
               onClick={() => onSelectItem(item.filename)}
             >
-              <span>{item.filename}</span>
+              <span>{itemLabels[index] || item.filename}</span>
               <span>{item.error ? "Ошибка" : "Готово"}</span>
             </button>
           ))}

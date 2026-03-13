@@ -47,7 +47,7 @@ export type TextResponse = {
 const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || "";
 const DESKTOP_TOKEN = (import.meta as any).env?.VITE_DESKTOP_TOKEN || "";
 
-function apiUrl(path: string) {
+export function resolveApiUrl(path: string) {
   if (!API_BASE) return path;
   return `${API_BASE.replace(/\/$/, "")}${path}`;
 }
@@ -69,7 +69,7 @@ export async function anonymizeText(payload: {
   text: string;
   options: AnonymizeOptions;
 }): Promise<TextResponse> {
-  const res = await fetch(apiUrl("/api/anonymize"), {
+  const res = await fetch(resolveApiUrl("/api/anonymize"), {
     method: "POST",
     headers: buildHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
@@ -87,7 +87,7 @@ export async function anonymizeFile(file: File, options: AnonymizeOptions): Prom
   form.append("file", file);
   form.append("options", JSON.stringify(options));
 
-  const res = await fetch(apiUrl("/api/anonymize-file"), {
+  const res = await fetch(resolveApiUrl("/api/anonymize-file"), {
     method: "POST",
     body: form,
     headers: buildHeaders(),
@@ -105,7 +105,7 @@ export async function startBatch(files: File[], options: AnonymizeOptions): Prom
   files.forEach((file) => form.append("files", file));
   form.append("options", JSON.stringify(options));
 
-  const res = await fetch(apiUrl("/api/anonymize-files-async"), {
+  const res = await fetch(resolveApiUrl("/api/anonymize-files-async"), {
     method: "POST",
     body: form,
     headers: buildHeaders(),
@@ -119,7 +119,7 @@ export async function startBatch(files: File[], options: AnonymizeOptions): Prom
 }
 
 export async function getBatchStatus(jobId: string): Promise<BatchStatus> {
-  const res = await fetch(apiUrl(`/api/batch/${jobId}`), {
+  const res = await fetch(resolveApiUrl(`/api/batch/${jobId}`), {
     headers: buildHeaders(),
   });
   const data = await handleJson(res);

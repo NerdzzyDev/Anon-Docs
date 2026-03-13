@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
@@ -13,6 +14,17 @@ from app.routes import files, text
 configure_logging()
 
 app = FastAPI(title="Document Anonymization Service")
+
+if settings.cors_allow_origins:
+    raw_origins = [item.strip() for item in settings.cors_allow_origins.split(",") if item.strip()]
+    allow_all = "*" in raw_origins
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"] if allow_all else raw_origins,
+        allow_credentials=False if allow_all else True,
+        allow_methods=["*"] if allow_all else [m.strip() for m in settings.cors_allow_methods.split(",") if m.strip()],
+        allow_headers=["*"] if settings.cors_allow_headers == "*" else [h.strip() for h in settings.cors_allow_headers.split(",") if h.strip()],
+    )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Vite build assets
