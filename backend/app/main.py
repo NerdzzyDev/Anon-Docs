@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from app.core.config import STATIC_DIR, STATIC_DIR_FALLBACK
+from app.core.config import STATIC_DIR, STATIC_DIR_FALLBACK, settings
 from app.core.errors import DomainError
 from app.core.logging import configure_logging
 from app.routes import files, text
