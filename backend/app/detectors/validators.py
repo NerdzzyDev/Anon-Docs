@@ -40,7 +40,7 @@ class ValidatorDetector:
             ValidatorRule(re.compile(r"\bогрнип\s*[:№]?\s*(\d{15})\b", re.IGNORECASE), "[СНИЛС/ИНН]", 1),
             ValidatorRule(re.compile(r"\bогрн\s*[:№]?\s*(\d{13})\b", re.IGNORECASE), "[СНИЛС/ИНН]", 1),
             # КПП
-            ValidatorRule(re.compile(r"\bкпп(?:\s+банка)?\s*[:№]?\s*(\d{9})\b", re.IGNORECASE), "[СЧЕТ/РЕКВИЗИТЫ]", 1),
+            ValidatorRule(re.compile(r"\bкпп(?:\s+банка)?\s*[:№]?\s*(\d{9})\b", re.IGNORECASE), "[СНИЛС/ИНН]", 1),
             # Телефон
             ValidatorRule(re.compile(r"(?<!\d)(?:\+7|7|8)[\s-]?\(?\d{3}\)?\s?\d{3}[-\s]?\d{2}[-\s]?\d{2}(?!\d)"), "[ТЕЛЕФОН]", 0),
             # Счета/реквизиты
