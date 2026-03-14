@@ -45,6 +45,9 @@ class NameDetector:
             # ИП / Индивидуальный предприниматель + ФИО (берем только ФИО)
             (re.compile(r"\b(?:ИП|ИНДИВИДУАЛЬНЫЙ\s+ПРЕДПРИНИМАТЕЛЬ)\s+([А-ЯЁ]{2,}\s+[А-ЯЁ]{2,}\s+[А-ЯЁ]{2,})\b", re.IGNORECASE), 1),
             (re.compile(r"\b(?:ИП|ИНДИВИДУАЛЬНЫЙ\s+ПРЕДПРИНИМАТЕЛЬ)\s+([А-ЯЁ]{2,}\s+[А-ЯЁ]{2,})\b", re.IGNORECASE), 1),
+            # ФИО в верхнем регистре
+            (re.compile(r"\b[А-ЯЁ]{2,}\s+[А-ЯЁ]{2,}\s+[А-ЯЁ]{2,}\b"), 0),
+            (re.compile(r"\b[А-ЯЁ]{2,}\s+[А-ЯЁ]{2,}\b"), 0),
             # Иванов Иван Иванович
             (re.compile(r"\b[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\s+[А-ЯЁ][а-яё-]{2,}\b"), 0),
             # Иванов Иван
@@ -90,6 +93,8 @@ class NameDetector:
                 value = text[start:end]
                 if self._is_initials_only(value):
                     continue
+                if self._is_non_person_phrase(value):
+                    continue
                 spans.append(
                     DetectedSpan(
                         start=start,
@@ -114,3 +119,36 @@ class NameDetector:
     def _is_initials_only(self, value: str) -> bool:
         short = re.sub(r"\s+", "", value)
         return bool(re.fullmatch(r"[А-ЯЁ]\.[А-ЯЁ]\.?", short))
+
+    def _is_non_person_phrase(self, value: str) -> bool:
+        tokens = re.findall(r"[А-ЯЁа-яё]+", value)
+        if not tokens:
+            return False
+        upper_tokens = {t.upper() for t in tokens}
+        # Организационно-правовые формы и банковские/реквизитные маркеры
+        stop = {
+            "ПАО",
+            "АО",
+            "ООО",
+            "ОАО",
+            "ЗАО",
+            "ИП",
+            "НКО",
+            "БАНК",
+            "СБЕРБАНК",
+            "ИНН",
+            "ОГРН",
+            "ОГРНИП",
+            "КПП",
+            "БИК",
+            "КОРСЧЕТ",
+            "КОРСЧЁТ",
+            "КОРРСЧЕТ",
+            "КОРРСЧЁТ",
+            "СЧЕТ",
+            "СЧЁТ",
+            "РАСЧЕТНЫЙ",
+            "РАСЧЁТНЫЙ",
+            "КОРРЕСПОНДЕНТСКИЙ",
+        }
+        return bool(upper_tokens & stop)
