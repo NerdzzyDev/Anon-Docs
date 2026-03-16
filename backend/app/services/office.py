@@ -6,7 +6,7 @@ from typing import List, Tuple
 from openpyxl import load_workbook
 
 from app.schemas.options import AnonymizeOptions
-from app.services.anonymizer import anonymize_text_no_llm
+from app.services.anonymizer import anonymize_text_no_llm, anonymize_text_value
 
 try:
     from docx import Document  # type: ignore
@@ -37,7 +37,7 @@ def process_docx_file(src: Path, dst: Path, options: AnonymizeOptions) -> Tuple[
             continue
         for run in paragraph.runs:
             if run.text:
-                run.text = anonymize_text_no_llm(run.text, options)
+                run.text = anonymize_text_value(run.text, options, prefer_llm=True)
         if paragraph.text:
             preview_parts.append(paragraph.text)
 
@@ -55,7 +55,7 @@ def process_xlsx_file(src: Path, dst: Path, options: AnonymizeOptions) -> Tuple[
         for row in ws.iter_rows():
             for cell in row:
                 if isinstance(cell.value, str) and cell.value:
-                    cell.value = anonymize_text_no_llm(cell.value, options)
+                    cell.value = anonymize_text_value(cell.value, options, prefer_llm=True)
                     if len(preview_lines) < 20:
                         preview_lines.append(f"[{ws.title}] {cell.coordinate}: {cell.value}")
 

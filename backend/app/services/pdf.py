@@ -12,7 +12,7 @@ from loguru import logger
 from app.core.config import settings
 from app.core.errors import DomainError
 from app.schemas.options import AnonymizeOptions
-from app.services.anonymizer import anonymize_text_no_llm, apply_numbered_placeholders_with_state, detect_spans
+from app.services.anonymizer import anonymize_text_no_llm, anonymize_text_value, apply_numbered_placeholders_with_state, detect_spans_with_llm
 
 try:
     import fitz  # type: ignore
@@ -225,7 +225,7 @@ def _detect_pdf_page_matches(
 
     matches: List[PdfMatch] = []
     page_text = page.get_text("text") or ""
-    numbered_spans = apply_numbered_placeholders_with_state(page_text, detect_spans(page_text, options), counters, keys)
+    numbered_spans = apply_numbered_placeholders_with_state(page_text, detect_spans_with_llm(page_text, options), counters, keys)
     for ent in numbered_spans:
         value = page_text[ent.start:ent.end]
         for start, end in _find_occurrences(page_stream.text, value):
@@ -289,7 +289,7 @@ class PdfRedactor:
     def _handle_page(self, page) -> None:
         page_text = page.get_text("text") or ""
         if page_text and len(self.preview_parts) < 20:
-            self.preview_parts.append(anonymize_text_no_llm(page_text, self.options)[:400])
+            self.preview_parts.append(anonymize_text_value(page_text, self.options, prefer_llm=True)[:400])
 
         matches = _detect_pdf_page_matches(page, self.options, self._counters, self._keys)
         if not matches:

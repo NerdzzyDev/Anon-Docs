@@ -118,7 +118,12 @@ def _build_llm_prompt(text: str) -> str:
     )
 
 
-def _find_llm_spans(text: str, chunk_start: int, items: list[dict]) -> List[SpanEntity]:
+def _find_llm_spans(
+    text: str,
+    chunk_start: int,
+    items: list[dict],
+    options: AnonymizeOptions,
+) -> List[SpanEntity]:
     spans: List[SpanEntity] = []
     for item in items:
         label = item.get("label")
@@ -128,6 +133,18 @@ def _find_llm_spans(text: str, chunk_start: int, items: list[dict]) -> List[Span
         if "[" in value or "]" in value:
             continue
         if label not in {"[ФИО]", "[СНИЛС/ИНН]", "[СЧЕТ/РЕКВИЗИТЫ]", "[ТЕЛЕФОН]", "[ПАСПОРТ]", "[ДАТА РОЖДЕНИЯ]"}:
+            continue
+        if label == "[ФИО]" and not options.fio:
+            continue
+        if label == "[СНИЛС/ИНН]" and not options.snils_inn:
+            continue
+        if label == "[СЧЕТ/РЕКВИЗИТЫ]" and not options.banking:
+            continue
+        if label == "[ТЕЛЕФОН]" and not options.phone:
+            continue
+        if label == "[ПАСПОРТ]" and not options.passport:
+            continue
+        if label == "[ДАТА РОЖДЕНИЯ]" and not options.birthdate:
             continue
         if not value.strip():
             continue
@@ -155,7 +172,7 @@ def _apply_llm_post_check(text: str, options: AnonymizeOptions) -> str:
         data = extract_first_json_object(response or "")
         items = data.get("items") if isinstance(data, dict) else None
         if isinstance(items, list):
-            spans.extend(_find_llm_spans(chunk, start, items))
+            spans.extend(_find_llm_spans(chunk, start, items, options))
         if end == len(text):
             break
         start = end - overlap
@@ -164,6 +181,31 @@ def _apply_llm_post_check(text: str, options: AnonymizeOptions) -> str:
     spans = _merge_spans(spans)
     spans = apply_numbered_placeholders(text, spans)
     return replace_spans(text, spans)
+
+
+def detect_spans_with_llm(text: str, options: AnonymizeOptions) -> List[SpanEntity]:
+    spans = detect_spans(text, options)
+    if not settings.llm_enabled or settings.llm_provider == "off":
+        return spans
+    client = get_llm_client()
+    chunk_size = max(500, settings.llm_chunk_size)
+    overlap = 200
+    start = 0
+    while start < len(text):
+        end = min(len(text), start + chunk_size)
+        chunk = text[start:end]
+        prompt = _build_llm_prompt(chunk)
+        response = client.anonymize_text(prompt)
+        data = extract_first_json_object(response or "")
+        items = data.get("items") if isinstance(data, dict) else None
+        if isinstance(items, list):
+            spans.extend(_find_llm_spans(chunk, start, items, options))
+        if end == len(text):
+            break
+        start = end - overlap
+        if start < 0:
+            start = 0
+    return _merge_spans(spans)
 
 
 def _normalize_key_for_span(text: str, span: SpanEntity) -> str:
