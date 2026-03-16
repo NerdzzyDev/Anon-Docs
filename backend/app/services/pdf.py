@@ -12,7 +12,7 @@ from loguru import logger
 from app.core.config import settings
 from app.core.errors import DomainError
 from app.schemas.options import AnonymizeOptions
-from app.services.anonymizer import anonymize_text_no_llm, anonymize_text_value, apply_numbered_placeholders_with_state, detect_spans_with_llm
+from app.services.anonymizer import anonymize_text_no_llm, anonymize_text_value, apply_plain_placeholders, detect_spans_with_llm
 
 try:
     import fitz  # type: ignore
@@ -72,6 +72,8 @@ def _pdf_placeholder_variants(placeholder: str, unicode_ok: bool) -> List[str]:
         "[СНИЛС/ИНН]": "[ИНН/СН]",
         "[ТЕЛЕФОН]": "[ТЕЛ.]",
         "[СЧЕТ/РЕКВИЗИТЫ]": "[СЧЕТ]",
+        "[EMAIL]": "[EMAIL]",
+        "[АДРЕС]": "[АДРЕС]",
     }
     base_label = f"{base[:-1]}{suffix}]"
     alt = compact.get(base, base)
@@ -225,8 +227,8 @@ def _detect_pdf_page_matches(
 
     matches: List[PdfMatch] = []
     page_text = page.get_text("text") or ""
-    numbered_spans = apply_numbered_placeholders_with_state(page_text, detect_spans_with_llm(page_text, options), counters, keys)
-    for ent in numbered_spans:
+    plain_spans = apply_plain_placeholders(detect_spans_with_llm(page_text, options))
+    for ent in plain_spans:
         value = page_text[ent.start:ent.end]
         for start, end in _find_occurrences(page_stream.text, value):
             token_indexes = _pdf_token_indexes_for_span(page_stream.spans, start, end)

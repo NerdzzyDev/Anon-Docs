@@ -44,7 +44,7 @@ def _get_validator_detector() -> ValidatorDetector:
 def highlight_placeholders(text: str) -> str:
     escaped = html.escape(text)
     escaped = re.sub(
-        r"(\[(?:ФИО|ПАСПОРТ|ДАТА РОЖДЕНИЯ|СНИЛС/ИНН|ТЕЛЕФОН|СЧЕТ/РЕКВИЗИТЫ)(?:-\d+)?\])",
+        r"(\[(?:ФИО|ПАСПОРТ|ДАТА РОЖДЕНИЯ|СНИЛС/ИНН|ТЕЛЕФОН|СЧЕТ/РЕКВИЗИТЫ|EMAIL|АДРЕС)(?:-\d+)?\])",
         r"<mark class='mask'>\1</mark>",
         escaped,
     )
@@ -112,7 +112,7 @@ def _build_llm_prompt(text: str) -> str:
         "[СНИЛС/ИНН-2], [СЧЕТ/РЕКВИЗИТЫ-3] и т.п. Найди оставшиеся персональные данные "
         "(ФИО, адреса, телефоны, e-mail, ИНН, СНИЛС, ОГРН, ОГРНИП, КПП, БИК, номера счетов, паспорта, даты рождения). "
         "Верни ТОЛЬКО JSON вида: {\"items\":[{\"text\":\"...\",\"label\":\"[ФИО]\"|\"[СНИЛС/ИНН]\"|\"[СЧЕТ/РЕКВИЗИТЫ]\"|"
-        "\"[ТЕЛЕФОН]\"|\"[ПАСПОРТ]\"|\"[ДАТА РОЖДЕНИЯ]\"}]}. "
+        "\"[ТЕЛЕФОН]\"|\"[ПАСПОРТ]\"|\"[ДАТА РОЖДЕНИЯ]\"|\"[EMAIL]\"|\"[АДРЕС]\"}]}. "
         "В поле text используй точные подстроки из входного текста. "
         "Не включай в ответ подстроки, которые уже содержат '[' или ']'. "
         "Если ничего не найдено, верни {\"items\":[]}.\n\n"
@@ -134,7 +134,7 @@ def _find_llm_spans(
             continue
         if "[" in value or "]" in value:
             continue
-        if label not in {"[ФИО]", "[СНИЛС/ИНН]", "[СЧЕТ/РЕКВИЗИТЫ]", "[ТЕЛЕФОН]", "[ПАСПОРТ]", "[ДАТА РОЖДЕНИЯ]"}:
+        if label not in {"[ФИО]", "[СНИЛС/ИНН]", "[СЧЕТ/РЕКВИЗИТЫ]", "[ТЕЛЕФОН]", "[ПАСПОРТ]", "[ДАТА РОЖДЕНИЯ]", "[EMAIL]", "[АДРЕС]"}:
             continue
         if label == "[ФИО]" and not options.fio:
             continue
@@ -183,7 +183,7 @@ def _apply_llm_post_check(text: str, options: AnonymizeOptions) -> str:
         if start < 0:
             start = 0
     spans = _merge_spans(spans)
-    spans = apply_numbered_placeholders(text, spans)
+    spans = apply_plain_placeholders(spans)
     return replace_spans(text, spans)
 
 
@@ -256,6 +256,10 @@ def apply_numbered_placeholders(text: str, spans: List[SpanEntity]) -> List[Span
     return apply_numbered_placeholders_with_state(text, spans, {}, {})
 
 
+def apply_plain_placeholders(spans: List[SpanEntity]) -> List[SpanEntity]:
+    return [SpanEntity(start=s.start, end=s.end, label=s.label) for s in spans]
+
+
 def detect_spans(text: str, options: AnonymizeOptions) -> List[SpanEntity]:
     spans = _merge_spans(_collect_ner_spans(text, options) + _collect_validator_spans(text, options))
     spans = apply_whitelist(spans, text)
@@ -266,7 +270,7 @@ def detect_spans(text: str, options: AnonymizeOptions) -> List[SpanEntity]:
 
 def anonymize_text_no_llm(text: str, options: AnonymizeOptions) -> str:
     spans = detect_spans(text, options)
-    spans = apply_numbered_placeholders(text, spans)
+    spans = apply_plain_placeholders(spans)
     return replace_spans(text, spans)
 
 
