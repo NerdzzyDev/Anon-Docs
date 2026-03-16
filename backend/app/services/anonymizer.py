@@ -5,6 +5,8 @@ import re
 from dataclasses import dataclass
 from typing import Iterable, List, Tuple
 
+from loguru import logger
+
 from app.core.config import settings
 from app.core.llm import extract_first_json_object, get_llm_client
 from app.core.policies import apply_blacklist, apply_whitelist
@@ -164,6 +166,7 @@ def _apply_llm_post_check(text: str, options: AnonymizeOptions) -> str:
     overlap = 200
     spans: List[SpanEntity] = []
     start = 0
+    logger.info("LLM post-check enabled (provider={}, model={})", settings.llm_provider, settings.ollama_model)
     while start < len(text):
         end = min(len(text), start + chunk_size)
         chunk = text[start:end]
@@ -172,6 +175,7 @@ def _apply_llm_post_check(text: str, options: AnonymizeOptions) -> str:
         data = extract_first_json_object(response or "")
         items = data.get("items") if isinstance(data, dict) else None
         if isinstance(items, list):
+            logger.info("LLM post-check items found: {}", len(items))
             spans.extend(_find_llm_spans(chunk, start, items, options))
         if end == len(text):
             break
@@ -191,6 +195,7 @@ def detect_spans_with_llm(text: str, options: AnonymizeOptions) -> List[SpanEnti
     chunk_size = max(500, settings.llm_chunk_size)
     overlap = 200
     start = 0
+    logger.info("LLM span detection enabled (provider={}, model={})", settings.llm_provider, settings.ollama_model)
     while start < len(text):
         end = min(len(text), start + chunk_size)
         chunk = text[start:end]
@@ -199,6 +204,7 @@ def detect_spans_with_llm(text: str, options: AnonymizeOptions) -> List[SpanEnti
         data = extract_first_json_object(response or "")
         items = data.get("items") if isinstance(data, dict) else None
         if isinstance(items, list):
+            logger.info("LLM span detection items found: {}", len(items))
             spans.extend(_find_llm_spans(chunk, start, items, options))
         if end == len(text):
             break
