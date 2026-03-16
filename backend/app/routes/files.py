@@ -30,7 +30,7 @@ def _parse_options_json(raw: str) -> AnonymizeOptions:
 
 def _process_text_like_file(src: Path, dst: Path, options: AnonymizeOptions) -> tuple[str, list[str]]:
     text = src.read_text(encoding="utf-8", errors="ignore")
-    anonymized = anonymize_text_value(text, options, prefer_llm=False)
+    anonymized = anonymize_text_value(text, options, prefer_llm=True)
     dst.write_text(anonymized, encoding="utf-8")
     return anonymized[:8000], []
 

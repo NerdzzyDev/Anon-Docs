@@ -5,6 +5,8 @@ import re
 from dataclasses import dataclass
 from typing import Iterable, List, Tuple
 
+from app.core.config import settings
+from app.core.llm import extract_first_json_object, get_llm_client
 from app.core.policies import apply_blacklist, apply_whitelist
 from app.detectors.context import is_address_context
 from app.detectors.name_ner import NameDetector
@@ -102,6 +104,68 @@ def replace_spans(text: str, spans: List[SpanEntity]) -> str:
     return result
 
 
+def _build_llm_prompt(text: str) -> str:
+    return (
+        "Ты помогаешь анонимизировать текст. В тексте уже могут быть плейсхолдеры вида [ФИО-1], "
+        "[СНИЛС/ИНН-2], [СЧЕТ/РЕКВИЗИТЫ-3] и т.п. Найди оставшиеся персональные данные "
+        "(ФИО, адреса, телефоны, e-mail, ИНН, СНИЛС, ОГРН, ОГРНИП, КПП, БИК, номера счетов, паспорта, даты рождения). "
+        "Верни ТОЛЬКО JSON вида: {\"items\":[{\"text\":\"...\",\"label\":\"[ФИО]\"|\"[СНИЛС/ИНН]\"|\"[СЧЕТ/РЕКВИЗИТЫ]\"|"
+        "\"[ТЕЛЕФОН]\"|\"[ПАСПОРТ]\"|\"[ДАТА РОЖДЕНИЯ]\"}]}. "
+        "В поле text используй точные подстроки из входного текста. "
+        "Не включай в ответ подстроки, которые уже содержат '[' или ']'. "
+        "Если ничего не найдено, верни {\"items\":[]}.\n\n"
+        f"ТЕКСТ:\n{text}"
+    )
+
+
+def _find_llm_spans(text: str, chunk_start: int, items: list[dict]) -> List[SpanEntity]:
+    spans: List[SpanEntity] = []
+    for item in items:
+        label = item.get("label")
+        value = item.get("text")
+        if not isinstance(label, str) or not isinstance(value, str):
+            continue
+        if "[" in value or "]" in value:
+            continue
+        if label not in {"[ФИО]", "[СНИЛС/ИНН]", "[СЧЕТ/РЕКВИЗИТЫ]", "[ТЕЛЕФОН]", "[ПАСПОРТ]", "[ДАТА РОЖДЕНИЯ]"}:
+            continue
+        if not value.strip():
+            continue
+        for m in re.finditer(re.escape(value), text):
+            start, end = m.span()
+            if "[" in text[start:end] or "]" in text[start:end]:
+                continue
+            spans.append(SpanEntity(start=chunk_start + start, end=chunk_start + end, label=label))
+    return spans
+
+
+def _apply_llm_post_check(text: str, options: AnonymizeOptions) -> str:
+    if not settings.llm_enabled or settings.llm_provider == "off":
+        return text
+    client = get_llm_client()
+    chunk_size = max(500, settings.llm_chunk_size)
+    overlap = 200
+    spans: List[SpanEntity] = []
+    start = 0
+    while start < len(text):
+        end = min(len(text), start + chunk_size)
+        chunk = text[start:end]
+        prompt = _build_llm_prompt(chunk)
+        response = client.anonymize_text(prompt)
+        data = extract_first_json_object(response or "")
+        items = data.get("items") if isinstance(data, dict) else None
+        if isinstance(items, list):
+            spans.extend(_find_llm_spans(chunk, start, items))
+        if end == len(text):
+            break
+        start = end - overlap
+        if start < 0:
+            start = 0
+    spans = _merge_spans(spans)
+    spans = apply_numbered_placeholders(text, spans)
+    return replace_spans(text, spans)
+
+
 def _normalize_key_for_span(text: str, span: SpanEntity) -> str:
     raw = text[span.start:span.end]
     label = span.label
@@ -162,7 +226,10 @@ def anonymize_text_value(text: str, options: AnonymizeOptions, prefer_llm: bool 
     if not text:
         return text
 
-    return anonymize_text_no_llm(text, options)
+    anonymized = anonymize_text_no_llm(text, options)
+    if prefer_llm:
+        return _apply_llm_post_check(anonymized, options)
+    return anonymized
 
 
 def text_response_for_ui(source_text: str, options: AnonymizeOptions) -> tuple[str, str]:
