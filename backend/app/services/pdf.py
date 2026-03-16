@@ -256,6 +256,12 @@ def _detect_pdf_page_matches(
 def _find_occurrences(text: str, value: str) -> List[Tuple[int, int]]:
     if not value:
         return []
+    digits_only = re.sub(r"\D+", "", value)
+    if digits_only and digits_only == value:
+        pattern = r"".join(re.escape(ch) + r"\s*" for ch in value)
+        matches = [(m.start(), m.end()) for m in re.finditer(pattern, text)]
+        if matches:
+            return matches
     ranges = [(m.start(), m.end()) for m in re.finditer(re.escape(value), text)]
     if ranges:
         return ranges

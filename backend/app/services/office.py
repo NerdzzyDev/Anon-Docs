@@ -33,11 +33,10 @@ def process_docx_file(src: Path, dst: Path, options: AnonymizeOptions) -> Tuple[
     preview_parts: List[str] = []
 
     for paragraph in _iter_docx_paragraphs(doc):
-        if not paragraph.runs:
+        if not paragraph.text:
             continue
-        for run in paragraph.runs:
-            if run.text:
-                run.text = anonymize_text_value(run.text, options, prefer_llm=True)
+        anonymized = anonymize_text_value(paragraph.text, options, prefer_llm=True)
+        paragraph.text = anonymized
         if paragraph.text:
             preview_parts.append(paragraph.text)
 
