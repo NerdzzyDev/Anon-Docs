@@ -3,11 +3,13 @@ import type { HistoryEntry } from "../../types/history";
 
 type HomeScreenProps = {
   onOpenUpload: (mode?: "file" | "text") => void;
+  onDropFiles: (files: FileList) => void;
   history: HistoryEntry[];
 };
 
-export function HomeScreen({ onOpenUpload, history }: HomeScreenProps) {
+export function HomeScreen({ onOpenUpload, onDropFiles, history }: HomeScreenProps) {
   const [section, setSection] = useState<"upload" | "uploaded" | "processed">("upload");
+  const [isDragging, setIsDragging] = useState(false);
   const uploadedItems = history.filter((item) => item.status === "uploaded");
   const processedItems = history.filter((item) => item.status === "processed" || item.status === "text");
   const recentItems = history.slice(0, 2);
@@ -100,7 +102,27 @@ export function HomeScreen({ onOpenUpload, history }: HomeScreenProps) {
               <h1 className="home-dropzone-layout__title">Обезличиватель документов</h1>
               <p className="home-dropzone-layout__subtitle">ФИО • Телефоны • Email • Реквизиты • PDF</p>
 
-              <button type="button" className="home-dropzone" onClick={() => onOpenUpload("file")}>
+              <button
+                type="button"
+                className={`home-dropzone${isDragging ? " is-dragging" : ""}`}
+                onClick={() => onOpenUpload("file")}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragEnter={(event) => {
+                  event.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setIsDragging(false);
+                  if (event.dataTransfer.files?.length) {
+                    onDropFiles(event.dataTransfer.files);
+                  }
+                }}
+              >
                 <span className="home-dropzone__icon" aria-hidden="true" />
                 <span className="home-dropzone__title">Перетащите файл сюда</span>
                 <span className="home-dropzone__action">или нажмите для выбора</span>

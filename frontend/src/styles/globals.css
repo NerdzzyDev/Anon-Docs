@@ -403,6 +403,13 @@ button {
   display: grid;
   place-items: center;
   padding: 24px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.home-dropzone.is-dragging {
+  border-color: #3463ff;
+  box-shadow: 0 10px 24px rgba(52, 99, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 .home-dropzone__icon {

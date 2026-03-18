@@ -58,7 +58,17 @@ export default function App() {
   };
 
   if (screen === "home") {
-    return <HomeScreen onOpenUpload={openProcessing} history={history} />;
+    return (
+      <HomeScreen
+        onOpenUpload={openProcessing}
+        onDropFiles={(files) => {
+          setMode("file");
+          setScreen("processing");
+          onFilesSelected(files);
+        }}
+        history={history}
+      />
+    );
   }
 
   return (
