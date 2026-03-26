@@ -14,6 +14,7 @@
   "dependencies": {},
   "devDependencies": {
     "electron": "^30.0.1",
+    "@electron/notarize": "^2.3.0",
     "electron-builder": "^24.13.3"
   },
   "description": "Desktop client for document anonymization service.",
@@ -38,6 +39,7 @@
     "win": {
       "target": ["nsis"]
     },
+    "afterSign": "scripts/notarize.cjs",
     "mac": {
       "target": ["dmg"],
       "category": "public.app-category.productivity",
