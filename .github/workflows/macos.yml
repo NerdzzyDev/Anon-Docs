@@ -31,16 +31,10 @@ jobs:
         working-directory: desktop
         run: npm install
 
-      - name: Write signing cert
-        env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-        run: |
-          printf '%s' "$CSC_LINK" | base64 -D > /tmp/cert.p12
-
       - name: Build mac app
         working-directory: desktop
         env:
-          CSC_LINK: /tmp/cert.p12
+          CSC_LINK: ${{ github.workspace }}/desktop/developer_id.p12
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
