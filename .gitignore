@@ -22,6 +22,7 @@ desktop/dist/
 
 # OS
 .DS_Store
+.playwright-cli/
 
 # Results
 /tmp/anon_docs_results/
