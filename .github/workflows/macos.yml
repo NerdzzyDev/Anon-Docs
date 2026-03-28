@@ -25,11 +25,11 @@ jobs:
 
       - name: Install frontend deps
         working-directory: frontend
-        run: npm ci
+        run: npm install
 
       - name: Install desktop deps
         working-directory: desktop
-        run: npm ci
+        run: npm install
 
       - name: Build mac app
         working-directory: desktop
