@@ -34,7 +34,7 @@ jobs:
       - name: Build mac app
         working-directory: desktop
         env:
-          CSC_LINK: ${{ github.workspace }}/desktop/developer_id.p12
+          CSC_LINK: ${{ github.workspace }}/desktop/developer_id_compat.p12
           CSC_KEY_PASSWORD: jWGZJhHZ
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
