@@ -43,6 +43,7 @@
     "mac": {
       "target": ["dmg"],
       "category": "public.app-category.productivity",
+      "notarize": false,
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
